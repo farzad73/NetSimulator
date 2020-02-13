@@ -2,6 +2,8 @@ from OpenflowNetwork import Topo
 from OpenflowController import Controller
 from FlowGenerator import FlowGenerator
 import random
+import threading
+
 
 net = Topo()
 
@@ -64,9 +66,6 @@ for host in net.hopts:
 
 # Generate random flows
 flows = FlowGenerator.generate_flow(100, 0.8, hosts_ips)
-print(flows)
-
-print(hosts)
 
 
 def get_name_from_ip(ip):
@@ -89,10 +88,44 @@ for packet in flows:
         switches[random_switch].buffer.put(packet)
 
 for sw in switches:
-    print(switches[sw].buffer.__len__())
+    print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
+
+print('==========================')
+
+print(switches['s1'].buffer.queue.queue)
 
 
+def check_all_switches_is_empy():
+    for switch in switches:
+        if not switches[switch].buffer.is_empty():
+            return False
+    return True
 
+while not check_all_switches_is_empy():
+    for switch in switches:
+        switches[switch].handle_packet()
+
+
+# for sw in switches:
+#     switches[sw].handle_packet()
+
+# t1 = threading.Thread(target=switches['s1'].handle_packet)
+# t2 = threading.Thread(target=switches['s2'].handle_packet)
+# t3 = threading.Thread(target=switches['s3'].handle_packet)
+# t4 = threading.Thread(target=switches['s4'].handle_packet)
+# t5 = threading.Thread(target=switches['s5'].handle_packet)
+#
+# t1.start()
+# t2.start()
+# t3.start()
+# t4.start()
+# t5.start()
+
+for sw in switches:
+    print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
+
+for host in hosts:
+    print(host, " -> ", hosts[host].buffer.__len__())
 
 # for sw in switches:
 #     switches[sw].table = all_rules.get(sw)

@@ -26,3 +26,6 @@ class Buffer:
 
     def __len__(self):
         return self.queue.qsize()
+
+    def is_empty(self):
+        return self.queue.empty()
