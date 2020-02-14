@@ -5,12 +5,12 @@ class Buffer:
     """A buffer that holds packets that are waiting to send.
 
     Attributes:
-        router: the router buffer belongs to
+        name: the router buffer belongs to
         queue: the Queue of packets waiting in the buffer
     """
 
-    def __init__(self, router):
-        self.router = router
+    def __init__(self, name):
+        self.name = name
         self.queue = queue.Queue()
 
     """Places a packet in the buffer."""

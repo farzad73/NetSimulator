@@ -2,8 +2,6 @@ from OpenflowNetwork import Topo
 from OpenflowController import Controller
 from FlowGenerator import FlowGenerator
 import random
-import threading
-
 
 net = Topo()
 
@@ -32,32 +30,32 @@ net.addLink('s3', 'h3')
 net.addLink('s5', 'h2')
 net.addLink('s4', 'h1')
 
-
-print("===================== lopts =======================")
-print(net.lopts)
-
-print("===================== sopts =======================")
-print(net.sopts)
-
-print("===================== hopts =======================")
-print(net.hopts)
-
-print("===================== Show graph =======================")
+# print("===================== lopts =======================")
+# print(net.lopts)
+#
+# print("===================== sopts =======================")
+# print(net.sopts)
+#
+# print("===================== hopts =======================")
+# print(net.hopts)
+#
+# print("=================== Show graph =====================")
 # net.showGraph()
+
 
 # Create all rules for the network switches
 controller = Controller(net)
 rules = controller.create_rules()
 
-
 # Fill the table of each switch
 for sw in switches:
-    switches[sw].table = rules.get(sw)
+    for rule in rules.get(sw):
+        switches[sw].add_rule(rule)
 
+# Print table information of each switches
+print('================ Table information of each switches ================')
 for sw in switches:
-    print(switches[sw].name)
-    print(switches[sw].table)
-    print(len(switches[sw].table))
+    print(switches[sw].name, ' -> ', len(switches[sw].table_queue), ' -> ', switches[sw].table_queue)
 
 # Create list of host ips
 hosts_ips = []
@@ -87,12 +85,10 @@ for packet in flows:
         random_switch = random.choice(net.switches())
         switches[random_switch].buffer.put(packet)
 
+print('================ Buffer information of each switch ================')
 for sw in switches:
-    print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
-
-print('==========================')
-
-print(switches['s1'].buffer.queue.queue)
+    print(sw, " -> ", 'The number of packets sent to the controller:', switches[sw].counter, ' buffer size: ',
+          switches[sw].buffer.__len__())
 
 
 def check_all_switches_is_empy():
@@ -101,33 +97,22 @@ def check_all_switches_is_empy():
             return False
     return True
 
+
 while not check_all_switches_is_empy():
     for switch in switches:
-        switches[switch].handle_packet()
+        switches[switch].handle_packet(controller)
 
-
-# for sw in switches:
-#     switches[sw].handle_packet()
-
-# t1 = threading.Thread(target=switches['s1'].handle_packet)
-# t2 = threading.Thread(target=switches['s2'].handle_packet)
-# t3 = threading.Thread(target=switches['s3'].handle_packet)
-# t4 = threading.Thread(target=switches['s4'].handle_packet)
-# t5 = threading.Thread(target=switches['s5'].handle_packet)
-#
-# t1.start()
-# t2.start()
-# t3.start()
-# t4.start()
-# t5.start()
-
+controller_packets = 0
+print('============ Buffer information of each switch after simulation ===========')
 for sw in switches:
     print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
+    controller_packets += switches[sw].counter
 
+successful_packets = 0
+print('============ Buffer information of each host after simulation ===========')
 for host in hosts:
     print(host, " -> ", hosts[host].buffer.__len__())
+    successful_packets += hosts[host].buffer.__len__()
 
-# for sw in switches:
-#     switches[sw].table = all_rules.get(sw)
-#
-# print(switches['s1'].table)
+print('The total number of packets sent to the controller: ', controller_packets)
+print('The total number of packets that successfully reached their destination: ', successful_packets)
