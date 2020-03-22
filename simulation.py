@@ -64,6 +64,7 @@ for host in net.hopts:
 
 # Generate random flows
 flows = FlowGenerator.generate_flow(1000, 0.8, hosts_ips)
+print(flows)
 
 
 def get_name_from_ip(ip):
@@ -101,12 +102,12 @@ def check_all_switches_is_empy():
 while not check_all_switches_is_empy():
     for switch in switches:
         switches[switch].handle_packet(controller, net)
-        # print('============ Buffer information of each switch after simulation ===========')
-        # for sw in switches:
-        #     print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
-        # print('============ Buffer information of each host after simulation ===========')
-        # for host in hosts:
-        #     print(host, " -> ", hosts[host].buffer.__len__())
+        print('============ Buffer information of each switch after simulation ===========')
+        for sw in switches:
+            print(sw, " -> ", switches[sw].counter, " - ", switches[sw].buffer.__len__())
+        print('============ Buffer information of each host after simulation ===========')
+        for host in hosts:
+            print(host, " -> ", hosts[host].buffer.__len__())
 
 controller_packets = 0
 print('============ Buffer information of each switch after simulation ===========')
@@ -122,14 +123,3 @@ for host in hosts:
 
 print('The total number of packets sent to the controller: ', controller_packets)
 print('The total number of packets that successfully reached their destination: ', successful_packets)
-
-# print(switches)
-# print(net.nodes(data=True))
-# print(net.sopts)
-# print(net.g.node)
-
-# print(net.sopts['s1'])
-
-# print(random.choice(net.sopts['s1']))
-
-# print(hosts['h1'].ip)

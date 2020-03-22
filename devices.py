@@ -56,9 +56,14 @@ class OpenflowSwitch(object):
                     elif packet['destination'] == next_hop_obj.ip:
                         OpenflowSwitch.send_packet(packet, next_hop_obj)
 
+                    else:
+                        self.counter += 1
+                        controller.update_table(packet)
+
                 else:
                     self.counter += 1
                     controller.update_table(packet)
+
 
             # if not flag:
             #     self.counter += 1
