@@ -11,7 +11,7 @@ class MultiGraph(nx.MultiGraph):
         self.edge = {}
 
     def add_node(self, node, attr_dict=None, **attrs):
-        attr_dict = {} if attr_dict is None else attr_dict
+        attr_dict = {'ports': {}} if attr_dict is None else attr_dict
         attr_dict.update(attrs)
         self.node[node] = attr_dict
         return self.node[node]
@@ -140,7 +140,9 @@ class Topo(object):
         ports[dst][dport] = (src, sport)
 
         self.sopts[src].update(ports[src]) if self.isSwitch(src) else self.hopts[src]['ports'].update(ports[src])
+        self.g.node[src]['ports'].update(ports[src])
         self.sopts[dst].update(ports[dst]) if self.isSwitch(dst) else self.hopts[dst]['ports'].update(ports[dst])
+        self.g.node[dst]['ports'].update(ports[dst])
 
         return sport, dport
 

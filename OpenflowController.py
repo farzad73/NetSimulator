@@ -85,6 +85,7 @@ class Controller:
                             for node in self.network.nodes(data=True):
                                 if node[0] == after:
                                     rule['next_hop'] = node[1].get('obj')
+                                    break
 
                     for node_info in self.network.nodes(data=True):
                         if node_info[0] == sp[i]:
