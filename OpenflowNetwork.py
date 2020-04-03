@@ -85,10 +85,10 @@ class Topo(object):
         # ports[src][dst][sport] is port on dst that connects to src
         self.ports = {}
 
-    def showGraph(self):
+    def showGraph(self, position=None):
         """Drawing graph"""
         g = self.g.convertTo(nx.MultiGraph)
-        nx.draw(g, with_labels=True)
+        nx.draw(g, position, with_labels=True)
         plt.show()
 
     def shortestPath(self):

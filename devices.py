@@ -2,8 +2,8 @@ from buffer import Buffer
 from collections import deque
 import random
 
-TABLE_SIZE = 10
-HOP_COUNT_LIMITATION = 2
+TABLE_SIZE = 9
+HOP_COUNT_LIMITATION = 4
 
 
 class OpenflowSwitch(object):
@@ -55,6 +55,10 @@ class OpenflowSwitch(object):
 
                     elif packet['destination'] == next_hop_obj.ip:
                         OpenflowSwitch.send_packet(packet, next_hop_obj)
+
+                    else:
+                        self.counter += 1
+                        controller.update_table(packet)
 
                 else:
                     self.counter += 1

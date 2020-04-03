@@ -2,10 +2,38 @@ from OpenflowNetwork import Topo
 from OpenflowController import Controller
 from FlowGenerator import FlowGenerator
 import random
+import networkx as nx
+
+# # Initialize graph from internet topology zoo
+# sdn_switch_num = 4
+# topology = 'gml-files/AttMpls.gml'
+# graph = nx.read_gml(topology)
+#
+# # Draw graph according to the longitude and latitude of each node
+# positions = {}
+# for node in graph.nodes():
+#     positions[node] = (graph._node[node]['Latitude'], graph._node[node]['Longitude'])
+#
+# net = Topo()
+#
+# # Add switches to topology
+# switches = {}
+# for node in graph.nodes:
+#     if graph._node[node]['type'] == 'switch':
+#         switches.update({node: net.addSwitch(node)})
+#
+# hosts = {}
+# # Add hosts to topology
+# for node in graph.nodes:
+#     if graph._node[node]['type'] == 'host':
+#         hosts.update({node: net.addHost(node, ip=graph._node[node]['ip'])})
+#
+# # Add links to topology
+# for edge in graph.edges:
+#     net.addLink(edge[0], edge[1])
 
 net = Topo()
 
-# Add switches to topology
 switches = {'s1': net.addSwitch('s1'),
             's4': net.addSwitch('s4'),
             's5': net.addSwitch('s5'),
@@ -24,12 +52,18 @@ net.addLink('s1', 's2')
 net.addLink('s2', 's4')
 net.addLink('s2', 's5')
 net.addLink('s5', 's3')
+net.addLink('s1', 's3')
+net.addLink('s3', 's4')
+net.addLink('s4', 's5')
 net.addLink('h4', 's1')
 net.addLink('s2', 'h5')
 net.addLink('s3', 'h3')
-net.addLink('s5', 'h2')
 net.addLink('s4', 'h1')
+net.addLink('s5', 'h2')
 
+# net.showGraph()
+
+# net.showGraph()
 # print("===================== lopts =======================")
 # print(net.lopts)
 #
@@ -53,9 +87,21 @@ for sw in switches:
         switches[sw].add_rule(rule)
 
 # Print table information of each switches
+sum_of_buffer = 0
 print('================ Table information of each switches ================')
 for sw in switches:
     print(switches[sw].name, ' -> ', len(switches[sw].table_queue), ' -> ', switches[sw].table_queue)
+    sum_of_buffer += len(switches[sw].table_queue)
+
+print('================ SUM OF BUFFERS ================')
+print(sum_of_buffer)
+
+print('================ SUM OF SHORTEST PATHS ================')
+sum_of_shortest_path_length = 0
+print('number of shortest path: ', len(net.shortestPath()))
+for sh in net.shortestPath():
+    sum_of_shortest_path_length += len(sh)
+print(sum_of_shortest_path_length)
 
 # Create list of host ips
 hosts_ips = []
@@ -122,14 +168,3 @@ for host in hosts:
 
 print('The total number of packets sent to the controller: ', controller_packets)
 print('The total number of packets that successfully reached their destination: ', successful_packets)
-
-# print(switches)
-# print(net.nodes(data=True))
-# print(net.sopts)
-# print(net.g.node)
-
-# print(net.sopts['s1'])
-
-# print(random.choice(net.sopts['s1']))
-
-# print(hosts['h1'].ip)
