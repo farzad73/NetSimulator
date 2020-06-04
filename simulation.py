@@ -4,62 +4,62 @@ from FlowGenerator import FlowGenerator
 import random
 import networkx as nx
 
-# # Initialize graph from internet topology zoo
-# sdn_switch_num = 4
-# topology = 'gml-files/AttMpls.gml'
-# graph = nx.read_gml(topology)
-#
-# # Draw graph according to the longitude and latitude of each node
-# positions = {}
-# for node in graph.nodes():
-#     positions[node] = (graph._node[node]['Latitude'], graph._node[node]['Longitude'])
-#
-# net = Topo()
-#
-# # Add switches to topology
-# switches = {}
-# for node in graph.nodes:
-#     if graph._node[node]['type'] == 'switch':
-#         switches.update({node: net.addSwitch(node)})
-#
-# hosts = {}
-# # Add hosts to topology
-# for node in graph.nodes:
-#     if graph._node[node]['type'] == 'host':
-#         hosts.update({node: net.addHost(node, ip=graph._node[node]['ip'])})
-#
-# # Add links to topology
-# for edge in graph.edges:
-#     net.addLink(edge[0], edge[1])
+# Initialize graph from internet topology zoo
+sdn_switch_num = 4
+topology = 'gml-files/AttMpls.gml'
+graph = nx.read_gml(topology)
+
+# Draw graph according to the longitude and latitude of each node
+positions = {}
+for node in graph.nodes():
+    positions[node] = (graph._node[node]['Latitude'], graph._node[node]['Longitude'])
 
 net = Topo()
 
-switches = {'s1': net.addSwitch('s1'),
-            's4': net.addSwitch('s4'),
-            's5': net.addSwitch('s5'),
-            's2': net.addSwitch('s2'),
-            's3': net.addSwitch('s3')}
+# Add switches to topology
+switches = {}
+for node in graph.nodes:
+    if graph._node[node]['type'] == 'switch':
+        switches.update({node: net.addSwitch(node)})
 
+hosts = {}
 # Add hosts to topology
-hosts = {'h2': net.addHost('h2', ip='10.0.0.2'),
-         'h5': net.addHost('h5', ip='10.0.0.5'),
-         'h1': net.addHost('h1', ip='10.0.0.1'),
-         'h4': net.addHost('h4', ip='10.0.0.4'),
-         'h3': net.addHost('h3', ip='10.0.0.3')}
+for node in graph.nodes:
+    if graph._node[node]['type'] == 'host':
+        hosts.update({node: net.addHost(node, ip=graph._node[node]['ip'])})
 
 # Add links to topology
-net.addLink('s1', 's2')
-net.addLink('s2', 's4')
-net.addLink('s2', 's5')
-net.addLink('s5', 's3')
-net.addLink('s1', 's3')
-net.addLink('s3', 's4')
-net.addLink('s4', 's5')
-net.addLink('h4', 's1')
-net.addLink('s2', 'h5')
-net.addLink('s3', 'h3')
-net.addLink('s4', 'h1')
-net.addLink('s5', 'h2')
+for edge in graph.edges:
+    net.addLink(edge[0], edge[1])
+
+# net = Topo()
+#
+# switches = {'s1': net.addSwitch('s1'),
+#             's4': net.addSwitch('s4'),
+#             's5': net.addSwitch('s5'),
+#             's2': net.addSwitch('s2'),
+#             's3': net.addSwitch('s3')}
+#
+# # Add hosts to topology
+# hosts = {'h2': net.addHost('h2', ip='10.0.0.2'),
+#          'h5': net.addHost('h5', ip='10.0.0.5'),
+#          'h1': net.addHost('h1', ip='10.0.0.1'),
+#          'h4': net.addHost('h4', ip='10.0.0.4'),
+#          'h3': net.addHost('h3', ip='10.0.0.3')}
+#
+# # Add links to topology
+# net.addLink('s1', 's2')
+# net.addLink('s2', 's4')
+# net.addLink('s2', 's5')
+# net.addLink('s5', 's3')
+# net.addLink('s1', 's3')
+# net.addLink('s3', 's4')
+# net.addLink('s4', 's5')
+# net.addLink('h4', 's1')
+# net.addLink('s2', 'h5')
+# net.addLink('s3', 'h3')
+# net.addLink('s4', 'h1')
+# net.addLink('s5', 'h2')
 
 # net.showGraph()
 
@@ -79,19 +79,16 @@ net.addLink('s5', 'h2')
 
 # Create all rules for the network switches
 controller = Controller(net)
-rules = controller.create_rules()
-
-# Fill the table of each switch
-for sw in switches:
-    for rule in rules.get(sw):
-        switches[sw].add_rule(rule)
+controller.fill_table(switches)
 
 # Print table information of each switches
 sum_of_buffer = 0
 print('================ Table information of each switches ================')
 for sw in switches:
-    print(switches[sw].name, ' -> ', len(switches[sw].table_queue), ' -> ', switches[sw].table_queue)
-    sum_of_buffer += len(switches[sw].table_queue)
+    print(switches[sw].name, ' -> ', len(switches[sw].table), ' -> ', switches[sw].table)
+    # print(switches[sw].name, ' -> ', switches[sw].star_rule)
+    # print('+++++++++++++++++++++++++++++')
+    sum_of_buffer += len(switches[sw].table)
 
 print('================ SUM OF BUFFERS ================')
 print(sum_of_buffer)
@@ -99,9 +96,10 @@ print(sum_of_buffer)
 print('================ SUM OF SHORTEST PATHS ================')
 sum_of_shortest_path_length = 0
 print('number of shortest path: ', len(net.shortestPath()))
+
 for sh in net.shortestPath():
-    sum_of_shortest_path_length += len(sh)
-print(sum_of_shortest_path_length)
+    sum_of_shortest_path_length += len(sh)-2
+print('Sum of shortest path length: ', sum_of_shortest_path_length)
 
 # Create list of host ips
 hosts_ips = []
@@ -168,3 +166,4 @@ for host in hosts:
 
 print('The total number of packets sent to the controller: ', controller_packets)
 print('The total number of packets that successfully reached their destination: ', successful_packets)
+

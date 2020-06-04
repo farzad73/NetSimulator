@@ -2,7 +2,6 @@ from buffer import Buffer
 from collections import deque
 import random
 
-TABLE_SIZE = 9
 HOP_COUNT_LIMITATION = 4
 
 
@@ -11,16 +10,21 @@ class OpenflowSwitch(object):
 
     def __init__(self, name):
         self.name = name
-        self.table_queue = deque([])
+        self.table = deque([])
+        self.star_rule = dict()
         self.buffer = Buffer(name)
         self.counter = 0
 
     def add_rule(self, rule):
-        if len(self.table_queue) < TABLE_SIZE:
-            self.table_queue.appendleft(rule)
-        else:
-            self.table_queue.pop()
-            self.table_queue.appendleft(rule)
+        # if len(self.table_queue) < TABLE_SIZE:
+        #     self.table_queue.appendleft(rule)
+        # else:
+        #     self.table_queue.pop()
+        #     self.table_queue.appendleft(rule)
+        self.table.appendleft(rule)
+
+    def add_star_rule(self, rule):
+        self.star_rule = rule
 
     @staticmethod
     def send_packet(packet, recipient):
@@ -34,7 +38,7 @@ class OpenflowSwitch(object):
 
             flag = False
 
-            for rule in self.table_queue:
+            for rule in self.table:
                 src = rule['match']['src']
                 dst = rule['match']['dst']
 
@@ -43,26 +47,47 @@ class OpenflowSwitch(object):
                     flag = True
                     break
 
-            # When we do not send packets to the controller
             if not flag:
-                if packet['hop_count'] < HOP_COUNT_LIMITATION:
+                if self.star_rule and packet['hop_count'] < HOP_COUNT_LIMITATION:
                     packet['hop_count'] += 1
-                    random_next = random.choice(list(net.sopts[self.name].values()))
-                    next_hop_info = net.g.node.get(random_next[0])
-                    next_hop_obj = next_hop_info.get('obj')
+                    next_hop_info = net.g.node.get(self.star_rule['next_hop'].name)
+
                     if next_hop_info.get('isSwitch') is True:
-                        OpenflowSwitch.send_packet(packet, next_hop_obj)
+                        OpenflowSwitch.send_packet(packet, self.star_rule['next_hop'])
+                        flag = True
 
-                    elif packet['destination'] == next_hop_obj.ip:
-                        OpenflowSwitch.send_packet(packet, next_hop_obj)
+                    elif packet['destination'] == self.star_rule['next_hop'].ip:
+                        OpenflowSwitch.send_packet(packet, self.star_rule['next_hop'])
+                        flag = True
 
-                    else:
-                        self.counter += 1
-                        controller.update_table(packet)
+            if not flag:
+                self.counter += 1
+                controller.update_table(packet)
 
-                else:
-                    self.counter += 1
-                    controller.update_table(packet)
+            # if not flag:
+            #     self.counter += 1
+            #     controller.update_table(packet)
+
+            # When we do not send packets to the controller
+            # if not flag:
+            #     if packet['hop_count'] < HOP_COUNT_LIMITATION:
+            #         packet['hop_count'] += 1
+            #         random_next = random.choice(list(net.sopts[self.name].values()))
+            #         next_hop_info = net.g.node.get(random_next[0])
+            #         next_hop_obj = next_hop_info.get('obj')
+            #         if next_hop_info.get('isSwitch') is True:
+            #             OpenflowSwitch.send_packet(packet, next_hop_obj)
+            #
+            #         elif packet['destination'] == next_hop_obj.ip:
+            #             OpenflowSwitch.send_packet(packet, next_hop_obj)
+            #
+            #         else:
+            #             self.counter += 1
+            #             controller.update_table(packet)
+            #
+            #     else:
+            #         self.counter += 1
+            #         controller.update_table(packet)
 
             # if not flag:
             #     self.counter += 1
