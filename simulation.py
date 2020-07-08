@@ -32,6 +32,7 @@ for node in graph.nodes:
 for edge in graph.edges:
     net.addLink(edge[0], edge[1])
 
+
 # net = Topo()
 #
 # switches = {'s1': net.addSwitch('s1'),
@@ -85,7 +86,7 @@ controller.fill_table(switches)
 sum_of_buffer = 0
 print('================ Table information of each switches ================')
 for sw in switches:
-    print(switches[sw].name, ' -> ', len(switches[sw].table), ' -> ', switches[sw].table)
+    print(switches[sw].name, ' -> ', len(switches[sw].table)+1)
     # print(switches[sw].name, ' -> ', switches[sw].star_rule)
     # print('+++++++++++++++++++++++++++++')
     sum_of_buffer += len(switches[sw].table)
@@ -95,10 +96,10 @@ print(sum_of_buffer)
 
 print('================ SUM OF SHORTEST PATHS ================')
 sum_of_shortest_path_length = 0
-print('number of shortest path: ', len(net.shortestPath()))
+print('number of shortest path: ', len(net.all_shortest_path()))
 
-for sh in net.shortestPath():
-    sum_of_shortest_path_length += len(sh)-2
+for sh in net.all_shortest_path():
+    sum_of_shortest_path_length += len(sh) - 2
 print('Sum of shortest path length: ', sum_of_shortest_path_length)
 
 # Create list of host ips
@@ -107,7 +108,7 @@ for host in net.hopts:
     hosts_ips.append(net.hopts[host]['ip'])
 
 # Generate random flows
-flows = FlowGenerator.generate_flow(1000, 0.8, hosts_ips)
+flows = FlowGenerator.generate_flow(1000, 1, hosts_ips)
 
 
 def get_name_from_ip(ip):
@@ -136,6 +137,7 @@ for sw in switches:
 
 
 def check_all_switches_is_empy():
+    """check the buffer is empty or not"""
     for sw in switches:
         if not switches[sw].buffer.is_empty():
             return False
@@ -167,3 +169,12 @@ for host in hosts:
 print('The total number of packets sent to the controller: ', controller_packets)
 print('The total number of packets that successfully reached their destination: ', successful_packets)
 
+
+# # Print table information of each switches
+# sum_of_buffer = 0
+# print('================ Table information of each switches ================')
+# for sw in switches:
+#     print(switches[sw].name, ' -> ', len(switches[sw].table), ' -> ', switches[sw].table)
+#     # print(switches[sw].name, ' -> ', switches[sw].star_rule)
+#     # print('+++++++++++++++++++++++++++++')
+#     sum_of_buffer += len(switches[sw].table)

@@ -91,7 +91,7 @@ class Topo(object):
         nx.draw(g, position, with_labels=True)
         plt.show()
 
-    def shortestPath(self):
+    def all_shortest_path(self):
         """Compute the shortest paths of graph"""
         sps = nx.shortest_path(self.g.convertTo(nx.MultiGraph))
         shortest_paths = []
@@ -101,6 +101,10 @@ class Topo(object):
                     if destination != source and destination in self.hosts():
                         shortest_paths.append(sps[source][destination])
         return shortest_paths
+
+    def shortest_path(self, src, dst):
+        sps = nx.shortest_path(self.g.convertTo(nx.MultiGraph), source=src, target=dst)
+        return sps
 
     def addNode(self, name, **opts):
         return self.g.add_node(name, **opts)
@@ -161,3 +165,11 @@ class Topo(object):
     def hosts(self):
         """Return hosts"""
         return [n for n in self.nodes() if not self.isSwitch(n)]
+
+    def copy(self):
+        return self.g.copy()
+
+    def links( self):
+        """Return links"""
+        links = self.g.edges()
+        return links
