@@ -1,7 +1,9 @@
+import time
+
 from buffer import Buffer
 from collections import deque
 
-HOP_COUNT_LIMITATION = 100
+HOP_COUNT_LIMITATION = 4
 
 
 class OpenflowSwitch(object):
@@ -10,15 +12,19 @@ class OpenflowSwitch(object):
     def __init__(self, name):
         self.name = name
         self.table = deque([])
-        self.star_rule = dict()
+        self.switch_star_rule = dict()
+        self.host_star_rule = dict()
         self.buffer = Buffer(name)
         self.counter = 0
 
     def add_rule(self, rule):
         self.table.appendleft(rule)
 
-    def add_star_rule(self, rule):
-        self.star_rule = rule
+    def add_switch_star_rule(self, rule):
+        self.switch_star_rule = rule
+
+    def add_host_star_rule(self, rule):
+        self.host_star_rule = rule
 
     @staticmethod
     def send_packet(packet, recipient):
@@ -29,7 +35,6 @@ class OpenflowSwitch(object):
 
         if not self.buffer.is_empty():
             packet = self.buffer.get()
-
             flag = False
 
             for rule in self.table:
@@ -37,36 +42,32 @@ class OpenflowSwitch(object):
                 dst = rule['match']['dst']
 
                 if packet['source'] == src and packet['destination'] == dst:
+                    rule['match_count'] += 1
+                    rule['start_time'] = time.time()
+
                     OpenflowSwitch.send_packet(packet, rule['next_hop'])
                     flag = True
                     break
 
             if not flag:
-                if self.star_rule and packet['hop_count'] < HOP_COUNT_LIMITATION:
+                if self.switch_star_rule and packet['hop_count'] < HOP_COUNT_LIMITATION:
                     packet['hop_count'] += 1
-                    next_hop_info = net.g.node.get(self.star_rule['next_hop'].name)
+                    OpenflowSwitch.send_packet(packet, self.switch_star_rule['next_hop'])
 
-                    if next_hop_info.get('isSwitch') is True:
-                        OpenflowSwitch.send_packet(packet, self.star_rule['next_hop'])
-                        flag = True
+                elif self.host_star_rule and packet['destination'] == self.host_star_rule['next_hop'].ip:
+                    OpenflowSwitch.send_packet(packet, self.switch_star_rule['next_hop'])
 
-                    elif packet['destination'] == self.star_rule['next_hop'].ip:
-                        OpenflowSwitch.send_packet(packet, self.star_rule['next_hop'])
-                        flag = True
-
-            if not flag:
-                self.counter += 1
-                controller.update_table(packet)
+                else:
+                    self.counter += 1
+                    # controller.update_table(packet)
 
     def remove_rule(self):
-
         seq = [x['start_time'] for x in self.table]
         min_index = seq.index(min(seq))
         del self.table[min_index]
 
 
 class Host(object):
-    """A SDN switch"""
 
     def __init__(self, name, ip):
         self.name = name

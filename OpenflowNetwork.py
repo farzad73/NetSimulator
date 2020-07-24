@@ -173,3 +173,7 @@ class Topo(object):
         """Return links"""
         links = self.g.edges()
         return links
+
+    def all_shortest_paths(self, src, dst):
+        sps = nx.all_shortest_paths(self.g.convertTo(nx.MultiGraph), source=src, target=dst)
+        return sps
