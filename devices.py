@@ -3,6 +3,11 @@ import time
 from buffer import Buffer
 from collections import deque
 
+
+"""
+In this module, we modeled the network equipment, which is divided into two categories: SDN switches and hosts.
+"""
+
 HOP_COUNT_LIMITATION = 4
 
 

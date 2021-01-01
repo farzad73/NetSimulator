@@ -1,6 +1,12 @@
 import random
 import ipaddress
 
+"""
+This module is used to generate random traffic. 
+By having a list of network hosts, this module generates flows.
+The number of requested flows is given as input to this module.
+"""
+
 
 class FlowGenerator:
     @staticmethod
@@ -19,5 +25,4 @@ class FlowGenerator:
             flows.append({"source": s, "destination": d, 'hop_count': 0})
 
         random.shuffle(flows)
-
         return flows

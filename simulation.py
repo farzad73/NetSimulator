@@ -6,7 +6,7 @@ import networkx as nx
 
 # Initialize graph from internet topology zoo
 sdn_switch_num = 4
-topology = 'gml-files/AttMpls.gml'
+topology = 'gml-files/BtNorthAmerica.gml'
 graph = nx.read_gml(topology)
 
 # Draw graph according to the longitude and latitude of each node
@@ -61,7 +61,7 @@ for edge in graph.edges:
 # net.addLink('s4', 'h1')
 # net.addLink('s5', 'h2')
 
-# net.showGraph()
+net.showGraph(position=positions)
 
 # net.showGraph()
 # print("===================== lopts =======================")
